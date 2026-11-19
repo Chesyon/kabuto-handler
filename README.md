@@ -17,6 +17,7 @@ main.srl comes with a function to handle both fatal errors and assertion errors 
 KBT is **not** a replacement for any existing tools or debuggers. Rather, it's another tool for the debugging toolbox. It was originally made with the goal of mimicking [nds-bootstrap](https://github.com/DS-Homebrew/nds-bootstrap)'s [exception handler](https://github.com/DS-Homebrew/nds-bootstrap/blob/master/retail/cardenginei/arm9_igm/source/exception.c) so I could get the same debug information for an abort without having to get out my 3DS every time.
 ## Abort Handling
 ![Demonstration of KBT's abort handling](abort.png)
+
 Catches data aborts, or really just about anything that would cause the game to freeze in `OSi_ExceptionHandler`. Displays all registers contents at the time of the error. Should work on anything that runs DS games and properly implements exception vectors (no exception vector means `OSi_ExceptionHandler` never runs.) This means that even the casual melonDS player can provide debugging information when they encounter an abort; no need to hook up GDB or try reproduce the error in a different emulator!
 ### KBT Abort Handling is supported on:
 - **melonDS and derivatives**: This is the primary target.
@@ -30,6 +31,7 @@ Please note that aborts are not the only thing that can cause the game to freeze
 
 ## Custom Errors
 ![Demonstration of KBT's assertion handling](assert.png)
+
 Unlike abort handling, custom errors much more closely resemble how the original main.srl's error handler was used. Most notably, they provide information about the source code that produced the error. All three are handled through macros in `kbt_handler.h`:
 * `KBT_ERROR(msg)` produces an error with a user-defined message.
 * `KBT_ERRORFMT(fmt, ...)` produces an error with a user-defined format string and variables.
