@@ -129,7 +129,7 @@ void __attribute__((naked)) DisplayErrorVramSetup(){
     asm("mov  r0,#0x0");
     asm("ldr  r1,[r2,#0x0]");
     asm("bic  r1,r1,#0x1f00");
-    asm("orr  r1,r1,#0x1c00");
+    asm("orr  r1,r1,#0xc00"); // different from main.srl. disables obj
     asm("str  r1,[r2,#0x0]");
     asm("ldrh r1,[r2,#0x8]");
     asm("bic  r1,r1,#0x3");
@@ -237,21 +237,27 @@ void KbtPrintMessage(const char* msg){
     OS_Panic();
 }
 
-void KbtErrorWithSource(bool is_assert, const char* file, int line, const char* fmt, ...){
-    #define HEADER_SIZE 256
+void KbtPrintMessageByType(const char* type, const char* details){
     char message[1024];
-    if(is_assert) {
-        snprintf(message, HEADER_SIZE, "!!! Assert !!! (Kabuto Handler)\n%s, line %d\n", file, line);
-    }
-    else {
-        snprintf(message, HEADER_SIZE, "!!! Error !!! (Kabuto Handler)\n%s, line %d\n", file, line);
-    }
-    char details[sizeof(message) - HEADER_SIZE];
+    snprintf(message, sizeof(message), "!!! %s !!! (Kabuto Handler)\n%s", type, details);
+    KbtPrintMessage(message);
+}
+
+void PrependSource(char* msg, int n, const char* file, int line, const char* details){
+    snprintf(msg, n, "%s, line %d\n%s", file, line, details);
+}
+
+#define DETAILS_SIZE 512
+#define MSG_SIZE 768
+
+void KbtErrorWithSource(bool is_assert, const char* file, int line, const char* fmt, ...){
+    char details[DETAILS_SIZE];
     __builtin_va_list args;
     __builtin_va_start(args, fmt);
     __vsprintf_internal(details, sizeof(details), fmt, *((va_list*)&args));
-    strcat(message, details);
-    KbtPrintMessage(message);
+    char msg[MSG_SIZE];
+    PrependSource(msg, sizeof(msg), file, line, details);
+    KbtPrintMessageByType(is_assert ? "Assert" : "Error", msg);
 }
 
 struct osi_ex_context {
@@ -266,11 +272,8 @@ extern struct osi_ex_context OSi_ExContext;
 
 void __attribute__((used)) CustomDisplayExContext(){
     struct os_context ctx = OSi_ExContext.context;
-    char message[1024];
-    snprintf(message, sizeof(message), "!!! Abort !!! (Kabuto Handler)\nR0:@ 0x%08X@\x80R1:@\xA0\x30x%08X\nR2:@ 0x%08X@\x80R3:@\xA0\x30x%08X\nR4:@ 0x%08X@\x80R5:@\xA0\x30x%08X\nR6:@ 0x%08X@\x80R7:@\xA0\x30x%08X\nR8:@ 0x%08X@\x80R9:@\xA0\x30x%08X\nR10:@ 0x%08X@\x80R11:@\xA0\x30x%08X\nR12:@ 0x%08X@\x80SP:@\xA0\x30x%08X\nLR:@ 0x%08X@\x80PC:@\xA0\x30x%08X\nCPSR:@ 0x%08X", ctx.registers[0], ctx.registers[1], ctx.registers[2], ctx.registers[3], ctx.registers[4], ctx.registers[5], ctx.registers[6], ctx.registers[7], ctx.registers[8], ctx.registers[9], ctx.registers[10], ctx.registers[11], ctx.registers[12], ctx.usable_stack_pointer, ctx.exit_function, ctx.function_address_plus_4, ctx.cpsr);
-    KbtPrintMessage(message);
+    char msg[MSG_SIZE];
+    snprintf(msg, sizeof(msg), "R0:@ 0x%08X@\x80R1:@\xA0\x30x%08X\nR2:@ 0x%08X@\x80R3:@\xA0\x30x%08X\nR4:@ 0x%08X@\x80R5:@\xA0\x30x%08X\nR6:@ 0x%08X@\x80R7:@\xA0\x30x%08X\nR8:@ 0x%08X@\x80R9:@\xA0\x30x%08X\nR10:@ 0x%08X@\x80R11:@\xA0\x30x%08X\nR12:@ 0x%08X@\x80SP:@\xA0\x30x%08X\nLR:@ 0x%08X@\x80PC:@\xA0\x30x%08X\nCPSR:@ 0x%08X", ctx.registers[0], ctx.registers[1], ctx.registers[2], ctx.registers[3], ctx.registers[4], ctx.registers[5], ctx.registers[6], ctx.registers[7], ctx.registers[8], ctx.registers[9], ctx.registers[10], ctx.registers[11], ctx.registers[12], ctx.usable_stack_pointer, ctx.exit_function, ctx.function_address_plus_4, ctx.cpsr);
+    KbtPrintMessageByType("Abort", msg);
 }
-
-
-
 
