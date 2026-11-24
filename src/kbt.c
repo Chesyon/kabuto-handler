@@ -260,6 +260,19 @@ void KbtErrorWithSource(bool is_assert, const char* file, int line, const char* 
     KbtPrintMessageByType(is_assert ? "Assert" : "Error", msg);
 }
 
+void __attribute__((used)) CustomFatalError(struct prog_pos_info *prog_pos, const char *fmt, ...) {
+    char details[DETAILS_SIZE];
+    if(fmt == NULL) strncpy(details, "(NULL)", sizeof(details));
+    else{
+        __builtin_va_list args;
+        __builtin_va_start(args, fmt);
+        __vsprintf_internal(details, sizeof(details), fmt, *((va_list*)&args));
+    }
+    char msg[MSG_SIZE];
+    PrependSource(msg, sizeof(msg), prog_pos->file, prog_pos->line, details);
+    KbtPrintMessageByType("Fatal", msg);
+}
+
 struct osi_ex_context {
     struct os_context context;
     uint32_t cp15;

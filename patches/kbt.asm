@@ -6,4 +6,9 @@
     .area 0x4
         bl CustomDisplayExContext
     .endarea
+
+    .org FatalError
+    .area 0x4
+        b CustomFatalError
+    .endarea
 .close

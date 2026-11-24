@@ -29,13 +29,20 @@ Catches data aborts, or really just about anything that would cause the game to 
 
 Please note that aborts are not the only thing that can cause the game to freeze. There are other types of crashes that KBT *does not handle* currently. Most notably, it does not handle calls to the vanilla `FatalError` function. I may revisit this in the future, in which case they will likely display similarly to custom errors.
 
+## Fatal Errors
+![Demonstration of KBT's fatal error handling](fatal.png)
+
+KBT catches calls to the vanilla `FatalError`, and constructs an error message similar to how vanilla would, down to the source file and line (though we don't know what the original source code looked like), but unlike vanilla, actually prints it in the way that debug builds like main.srl do.
+
 ## Custom Errors
 ![Demonstration of KBT's assertion handling](assert.png)
 
-Unlike abort handling, custom errors much more closely resemble how the original main.srl's error handler was used. Most notably, they provide information about the source code that produced the error. All three are handled through macros in `kbt_handler.h`:
+Similar to fatal error handling, but you can write errors and assertions in your own code. `FatalError` expects a `prog_pos_info` with source code information, which would get inconvenient to write out every time, so KBT provides macros to skip `FatalError` and go straight to the handler:
 * `KBT_ERROR(msg)` produces an error with a user-defined message.
 * `KBT_ERRORFMT(fmt, ...)` produces an error with a user-defined format string and variables.
 * `KBT_ASSERT(expr)` evaluates the boolean expression `expr`. If `expr` evaluates to true, nothing happens and the game continues as normal. If `expr` evaluates to false, an error is produced with `expr` as written in the source code printed as an error message.
+
+KBT labels custom errors as "Error" and "Assert" to distinguish them from the "Fatal" label for vanilla `FatalError` calls.
 
 # How to use
 
