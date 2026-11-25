@@ -27,8 +27,6 @@ Catches data aborts, or really just about anything that would cause the game to 
 - **no\$gba**: Doesn't implement exception vectors as it tries to handle errors on its own. *Most* of the time, no\$gba will at least give you a warning if something would have caused an abort, though I've found a few cases where something slips through the cracks.
 - **DeSmuME and derivatives**:  Does not implement exception vectors as it tries to ignore errors whenever possible. You shouldn't be debugging on DeSmuME anyway.
 
-Please note that aborts are not the only thing that can cause the game to freeze. There are other types of crashes that KBT *does not handle* currently. Most notably, it does not handle calls to the vanilla `FatalError` function. I may revisit this in the future, in which case they will likely display similarly to custom errors.
-
 ## Fatal Errors
 ![Demonstration of KBT's fatal error handling](fatal.png)
 
@@ -43,6 +41,8 @@ Similar to fatal error handling, but you can write errors and assertions in your
 * `KBT_ASSERT(expr)` evaluates the boolean expression `expr`. If `expr` evaluates to true, nothing happens and the game continues as normal. If `expr` evaluates to false, an error is produced with `expr` as written in the source code printed as an error message.
 
 KBT labels custom errors as "Error" and "Assert" to distinguish them from the "Fatal" label for vanilla `FatalError` calls.
+
+Please note that KBT cannot handle *all* kinds of errors. There are some crashes where KBT will be unable to trigger due to their nature (such as infinite loops). However, the included features cover the most common issues.
 
 # How to use
 
